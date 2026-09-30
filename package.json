@@ -1,0 +1,19 @@
+{
+  "name": "devstak-platform",
+  "private": true,
+  "version": "1.0.0",
+  "workspaces": ["apps/web", "apps/admin", "server", "packages/shared"],
+  "scripts": {
+    "dev": "node scripts/dev-all.mjs",
+    "dev:web": "npm --workspace apps/web run dev",
+    "dev:admin": "npm --workspace apps/admin run dev",
+    "dev:server": "npm --workspace server run dev",
+    "build:web": "npm --workspace apps/web run build",
+    "build:admin": "npm --workspace apps/admin run build",
+    "build:server": "npm --workspace server run build",
+    "db:generate": "npm --workspace server run prisma:generate",
+    "db:migrate": "npm --workspace server run prisma:migrate",
+    "db:seed": "npm --workspace server run prisma:seed",
+    "db:push": "npm --workspace server run prisma:push"
+  }
+}

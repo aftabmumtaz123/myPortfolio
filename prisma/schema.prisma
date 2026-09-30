@@ -1,0 +1,204 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum Role {
+  OWNER
+  ADMIN
+}
+enum LeadStatus {
+  NEW
+  CONTACTED
+  DISCOVERY
+  PROPOSAL_SENT
+  WON
+  LOST
+}
+enum ContentStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+model AdminUser {
+  id           String   @id @default(uuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(ADMIN)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Project {
+  id             String          @id @default(uuid())
+  title          String
+  slug           String          @unique
+  type           String
+  shortDescription String
+  description    String
+  problem        String?
+  solution       String?
+  featured       Boolean         @default(false)
+  status         ContentStatus   @default(DRAFT)
+  coverImage     String?
+  liveUrl        String?
+  githubUrl      String?
+  galleryImages  String[]        @default([])
+  highlights     String[]        @default([])
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+  technologies   ProjectTechnology[]
+  testimonials   Testimonial[]
+}
+
+model TeamMember {
+  id          String   @id @default(uuid())
+  name        String
+  role        String
+  bio         String?
+  photoUrl    String?
+  linkedinUrl String?
+  githubUrl   String?
+  websiteUrl  String?
+  featured    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+model Technology {
+  id          String @id @default(uuid())
+  name        String @unique
+  slug        String @unique
+  iconKey     String
+  category    String
+  websiteUrl  String?
+  featured    Boolean @default(true)
+  sortOrder   Int @default(0)
+  projects    ProjectTechnology[]
+}
+
+model ProjectTechnology {
+  projectId     String
+  technologyId  String
+  project       Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  technology    Technology @relation(fields: [technologyId], references: [id], onDelete: Cascade)
+  @@id([projectId, technologyId])
+}
+
+model Service {
+  id          String @id @default(uuid())
+  title       String
+  slug        String @unique
+  description String
+  iconKey     String
+  sortOrder   Int @default(0)
+  published   Boolean @default(true)
+}
+
+model Lead {
+  id          String @id @default(uuid())
+  name        String
+  email       String
+  company     String?
+  projectType String
+  budget      String?
+  timeline    String?
+  message     String
+  source      String? @default("website")
+  status      LeadStatus @default(NEW)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  notes       LeadNote[]
+}
+
+model LeadNote {
+  id        String @id @default(uuid())
+  leadId    String
+  note      String
+  createdAt DateTime @default(now())
+  lead      Lead @relation(fields: [leadId], references: [id], onDelete: Cascade)
+}
+
+model Testimonial {
+  id        String @id @default(uuid())
+  client    String
+  company   String?
+  role      String?
+  content   String
+  photoUrl  String?
+  rating    Int?
+  status    ContentStatus @default(DRAFT)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+}
+
+model BlogPost {
+  id          String @id @default(uuid())
+  title       String
+  slug        String @unique
+  excerpt     String
+  content     String
+  coverImage  String?
+  status      ContentStatus @default(DRAFT)
+  publishedAt DateTime?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  categories  BlogPostCategory[]
+  tags        BlogPostTag[]
+}
+
+model BlogCategory {
+  id    String @id @default(uuid())
+  name  String @unique
+  slug  String @unique
+  posts BlogPostCategory[]
+}
+
+model BlogPostCategory {
+  postId     String
+  categoryId String
+  post       BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  category   BlogCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+  @@id([postId, categoryId])
+}
+
+model BlogTag {
+  id    String @id @default(uuid())
+  name  String @unique
+  slug  String @unique
+  posts BlogPostTag[]
+}
+
+model BlogPostTag {
+  postId String
+  tagId  String
+  post   BlogPost @relation(fields: [postId], references: [id], onDelete: Cascade)
+  tag    BlogTag @relation(fields: [tagId], references: [id], onDelete: Cascade)
+  @@id([postId, tagId])
+}
+
+model Media {
+  id        String @id @default(uuid())
+  url       String
+  publicId  String?
+  filename  String
+  altText   String?
+  mimeType  String?
+  createdAt DateTime @default(now())
+}
+
+model SiteSetting {
+  id        String @id @default(uuid())
+  key       String @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}
